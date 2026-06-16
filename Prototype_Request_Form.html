@@ -1,0 +1,1444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prototype Request Form</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#ffffff;--bg2:#f7f7f5;--bg3:#f0efe9;
+  --text:#1a1a1a;--text2:#666;--text3:#999;
+  --border:#e0dfd8;--border2:#c8c7c0;
+  --blue:#185FA5;--blue-light:#E6F1FB;--blue-dark:#0C447C;
+  --green:#3B6D11;--green-light:#EAF3DE;
+  --amber:#854F0B;--amber-light:#FAEEDA;
+  --red:#A32D2D;--red-light:#FCEBEB;
+  --radius:8px;--radius-lg:12px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--text);min-height:100vh}
+.app-shell{max-width:900px;margin:0 auto;background:var(--bg);min-height:100vh;box-shadow:0 0 40px rgba(0,0,0,.08)}
+/* Top bar */
+.topbar{background:var(--bg);border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.topbar-brand{font-size:15px;font-weight:600;color:var(--text);padding:14px 0;letter-spacing:.5px}
+.topbar-brand span{color:var(--blue)}
+.nav{display:flex;gap:0}
+.nav-btn{padding:14px 16px;font-size:13px;border:none;background:none;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;font-family:inherit;transition:color .15s}
+.nav-btn:hover{color:var(--text)}
+.nav-btn.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:500}
+/* Content */
+.content{padding:1.5rem}
+.screen{display:none}.screen.active{display:block}
+/* Progress */
+.prog-wrap{margin-bottom:1.5rem}
+.prog-bar{display:flex;gap:3px;margin-bottom:.5rem}
+.prog-seg{flex:1;height:3px;border-radius:2px;background:var(--border);transition:background .3s}
+.prog-seg.done{background:var(--blue)}.prog-seg.active{background:#378ADD}
+.prog-labels{display:flex;justify-content:space-between}
+.prog-label{font-size:11px;color:var(--text3)}
+.prog-label.active{color:var(--blue);font-weight:500}
+/* Step */
+.step{display:none}.step.active{display:block}
+.step-header{margin-bottom:1.1rem}
+.step-num{font-size:11px;color:var(--text3);margin-bottom:2px;text-transform:uppercase;letter-spacing:.5px}
+.step-title{font-size:18px;font-weight:600;color:var(--text)}
+.step-sub{font-size:13px;color:var(--text2);margin-top:3px}
+/* Form elements */
+.fg{margin-bottom:.8rem}
+.fg label{display:block;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.3px}
+input[type=text],input[type=date],select,textarea{
+  width:100%;font-size:14px;padding:9px 11px;
+  border:1px solid var(--border);border-radius:var(--radius);
+  background:var(--bg);color:var(--text);font-family:inherit;
+  transition:border-color .15s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
+textarea{resize:vertical;min-height:70px;line-height:1.5}
+select{cursor:pointer}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+/* Buttons */
+.btn{padding:9px 18px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);font-size:14px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;transition:background .15s,border-color .15s;white-space:nowrap}
+.btn:hover{background:var(--bg2)}
+.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn.primary:hover{background:var(--blue-dark)}
+.btn.sm{padding:6px 12px;font-size:12px}
+.btn.ghost{border-color:transparent;color:var(--text2)}
+.btn.ghost:hover{background:var(--bg2)}
+.btn.danger{color:var(--red);border-color:transparent}
+.btn.danger:hover{background:var(--red-light)}
+.btn-row{display:flex;gap:8px;margin-top:1.1rem;flex-wrap:wrap;align-items:center}
+/* Cards */
+.card{border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.1rem;margin-bottom:1rem;background:var(--bg)}
+.card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem}
+.card-title{font-size:14px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px}
+.piece-num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--blue-light);color:var(--blue-dark);font-size:12px;font-weight:600;flex-shrink:0}
+/* Dividers */
+.divider{border:none;border-top:1px solid var(--border);margin:.85rem 0}
+.section-lbl{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:.55rem}
+/* Autocomplete */
+.rel{position:relative}
+.sug-box{position:absolute;z-index:500;background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius);box-shadow:0 6px 20px rgba(0,0,0,.1);max-height:200px;overflow-y:auto;width:100%;top:calc(100% + 2px);left:0}
+.sug-item{padding:9px 12px;font-size:13px;cursor:pointer;color:var(--text)}
+.sug-item:hover{background:var(--bg2)}
+/* Pill rows */
+.pill-hdr{display:grid;grid-template-columns:1.5fr 60px 1.2fr 1.5fr 1.2fr 32px;gap:8px;margin-bottom:4px}
+.pill-hdr span{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.3px}
+.pill-row{display:grid;grid-template-columns:1.5fr 60px 1.2fr 1.5fr 1.2fr 32px;gap:8px;align-items:center;margin-bottom:7px}
+.add-dashed{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--blue);background:none;border:1px dashed #378ADD;border-radius:var(--radius);padding:7px 12px;cursor:pointer;width:100%;justify-content:center;margin-top:6px;font-family:inherit}
+.add-dashed:hover{background:var(--blue-light)}
+.rm-btn{background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:4px;line-height:1}
+.rm-btn:hover{color:var(--red);background:var(--red-light)}
+/* ETA */
+.eta-pill{display:inline-block;font-size:11px;padding:2px 9px;border-radius:20px;font-weight:500}
+.eta-ok{background:var(--green-light);color:var(--green)}
+.eta-warn{background:var(--amber-light);color:var(--amber)}
+.eta-late{background:var(--red-light);color:var(--red)}
+.eta-none{background:var(--bg2);color:var(--text3)}
+/* Live feed bar */
+.feed-bar{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);margin-bottom:1rem;padding:6px 10px;background:var(--bg2);border-radius:var(--radius);border:1px solid var(--border)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0}
+.dot.pulse{animation:pulse 2s infinite}.dot.dead{background:var(--red);animation:none}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+/* Image drop */
+.img-drop{border:1px dashed var(--border2);border-radius:var(--radius-lg);padding:1.5rem;text-align:center;cursor:pointer;color:var(--text2);font-size:13px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:110px;transition:border-color .15s}
+.img-drop:hover,.img-drop.over{border-color:var(--blue);background:var(--blue-light)}
+.img-drop img{max-width:100%;max-height:200px;border-radius:var(--radius)}
+/* Badge */
+.badge{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 6px;background:var(--blue-light);color:var(--blue-dark);border-radius:20px;font-size:11px;font-weight:600;margin-left:5px}
+/* Hint */
+.hint{font-size:11px;color:var(--text3);margin-top:3px}
+.suggest-link{font-size:11px;color:var(--blue);cursor:pointer;margin-left:6px}
+.suggest-link:hover{text-decoration:underline}
+/* Dashboard */
+.dash-table{width:100%;border-collapse:collapse;font-size:13px}
+.dash-table th{text-align:left;font-size:11px;font-weight:600;color:var(--text2);padding:8px 10px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.3px}
+.dash-table td{padding:10px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+.dash-table tr:hover td{background:var(--bg2)}
+.status-pill{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
+.s-open{background:var(--blue-light);color:var(--blue-dark)}
+.s-done{background:var(--green-light);color:var(--green)}
+.s-archived{background:var(--bg2);color:var(--text2)}
+/* Retailer manager */
+.ret-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border)}
+.ret-name{font-size:14px;font-weight:500}
+.ret-meta{font-size:12px;color:var(--text2);margin-top:2px}
+/* Filter bar */
+.filter-bar{display:flex;gap:10px;margin-bottom:1rem;flex-wrap:wrap;align-items:center}
+.filter-bar input,.filter-bar select{width:auto;font-size:13px;padding:7px 10px}
+/* AI parser */
+.parser-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.1rem;margin-bottom:1rem}
+.parser-title{font-size:14px;font-weight:600;margin-bottom:.5rem;display:flex;align-items:center;gap:8px}
+.parser-actions{display:flex;gap:8px;margin-top:.75rem;flex-wrap:wrap}
+.ai-thinking{display:none;font-size:13px;color:var(--blue);padding:8px 0}
+.parsed-preview{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:.75rem;font-size:12px;color:var(--text2);margin-top:.75rem;display:none;max-height:120px;overflow-y:auto;line-height:1.6}
+/* Preview sheet */
+.preview-wrap{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.1rem;font-size:11px;color:#111}
+.pv-top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #000;padding-bottom:7px;margin-bottom:7px}
+.pv-logo{font-size:17px;font-weight:700;border:2px solid #000;padding:2px 10px;letter-spacing:1px}
+.pv-tbl{width:100%;border-collapse:collapse;margin-bottom:6px}
+.pv-tbl th{background:#d0d0d0;padding:3px 5px;border:.5px solid #999;text-align:center;font-size:10px}
+.pv-tbl td{padding:3px 5px;border:.5px solid #999;font-size:10px;vertical-align:top}
+.pv-lbl{font-weight:600;background:#ececec;width:150px}
+/* Empty state */
+.empty{text-align:center;padding:3rem 1rem;color:var(--text2)}
+.empty-icon{font-size:2.5rem;margin-bottom:.75rem}
+/* Section headers in form */
+.form-section{margin-top:1.1rem}
+/* Upload area for PDF */
+.upload-zone{border:1px dashed var(--border2);border-radius:var(--radius);padding:1rem;text-align:center;cursor:pointer;font-size:13px;color:var(--text2);transition:border-color .15s}
+.upload-zone:hover{border-color:var(--blue);background:var(--blue-light)}
+/* Tooltip */
+.tip{font-size:11px;background:#333;color:#fff;padding:4px 8px;border-radius:4px;position:absolute;white-space:nowrap;z-index:999;pointer-events:none;display:none}
+</style>
+</head>
+<body>
+<div class="app-shell">
+<div class="topbar">
+  <div class="topbar-brand">PROTOTYPE<span>REQUEST</span></div>
+  <div class="nav">
+    <button class="nav-btn active" onclick="showScreen('builder',this)">＋ New Sheet</button>
+    <button class="nav-btn" onclick="showScreen('dashboard',this)">Projects <span class="badge" id="projBadge">0</span></button>
+    <button class="nav-btn" onclick="showScreen('retailers',this)">Retailers</button>
+  </div>
+</div>
+<div class="content">
+
+<!-- ═══════════ BUILDER ═══════════ -->
+<div id="screen-builder" class="screen active">
+  <div class="prog-wrap">
+    <div class="prog-bar">
+      <div class="prog-seg active" id="seg0" onclick="goStep(0)" style="cursor:pointer" title="Order info"></div>
+      <div class="prog-seg" id="seg1" onclick="goStep(1)" style="cursor:pointer" title="Pieces"></div>
+      <div class="prog-seg" id="seg2" onclick="goStep(2)" style="cursor:pointer" title="Construction"></div>
+      <div class="prog-seg" id="seg3" onclick="goStep(3)" style="cursor:pointer" title="Base & image"></div>
+      <div class="prog-seg" id="seg4" onclick="goStep(4)" style="cursor:pointer" title="Preview"></div>
+    </div>
+    <div class="prog-labels">
+      <span class="prog-label active" id="plbl0" onclick="goStep(0)" style="cursor:pointer">Order info</span>
+      <span class="prog-label" id="plbl1" onclick="goStep(1)" style="cursor:pointer">Pieces</span>
+      <span class="prog-label" id="plbl2" onclick="goStep(2)" style="cursor:pointer">Construction</span>
+      <span class="prog-label" id="plbl3" onclick="goStep(3)" style="cursor:pointer">Base & image</span>
+      <span class="prog-label" id="plbl4" onclick="goStep(4)" style="cursor:pointer">Preview</span>
+    </div>
+  </div>
+
+  <!-- Step 0 -->
+  <div id="s0" class="step active">
+    <div class="step-header">
+      <div class="step-num">Step 1 of 5</div>
+      <div class="step-title">Order information</div>
+      <div class="step-sub">Retailer, dates, and shipping details.</div>
+    </div>
+
+    <!-- AI PARSER -->
+    <div class="parser-box">
+      <div class="parser-title">
+        <span>✦</span> Auto-fill from notes, email, or document
+      </div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:.75rem">Drop a file, upload, or paste text — we'll extract spec info automatically.</div>
+
+      <!-- Drag & drop zone -->
+      <div id="docDropZone" style="border:1.5px dashed var(--border2);border-radius:var(--radius-lg);padding:1.25rem;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:.75rem;background:var(--bg)" onclick="document.getElementById('pdfInput').click()">
+        <div style="font-size:1.75rem;margin-bottom:.35rem">📂</div>
+        <div style="font-size:13px;font-weight:500;color:var(--text2)">Drag & drop a file here, or click to browse</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:3px">PDF, TXT, DOC, DOCX — or paste text below</div>
+        <input type="file" id="pdfInput" accept=".pdf,.txt,.doc,.docx" style="display:none" onchange="handleDocUpload(this)">
+      </div>
+
+      <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.6rem">
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+        <span style="font-size:11px;color:var(--text3)">or paste text</span>
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+      </div>
+
+      <textarea id="pasteInput" placeholder="Paste email, notes, or copied text from a tech pack here…" style="min-height:80px"></textarea>
+      <div class="parser-actions">
+        <button class="btn primary sm" onclick="runAIParser()">✦ Extract info</button>
+        <button class="btn sm ghost" onclick="clearParser()">Clear</button>
+      </div>
+      <div class="ai-thinking" id="aiThinking">✦ Analyzing… extracting spec information…</div>
+      <div class="parsed-preview" id="parsedPreview"></div>
+    </div>
+
+    <div class="fg rel">
+      <label>Retailer</label>
+      <input type="text" id="retailerInput" placeholder="Type retailer name…" oninput="onRetailerType()" onblur="setTimeout(()=>hideSug('retailerSug'),200)" autocomplete="off">
+      <div class="sug-box" id="retailerSug" style="display:none"></div>
+    </div>
+    <div class="two-col">
+      <div class="fg"><label>Requested date</label><input type="date" id="requestedDate"></div>
+      <div class="fg"><label>Due date</label><input type="date" id="dueDate"></div>
+    </div>
+    <div class="fg"><label>First sample due</label><input type="date" id="sampleDue"></div>
+    <hr class="divider">
+    <div class="section-lbl">Final sample ship to</div>
+    <div class="fg"><label>Ship-to address</label>
+      <textarea id="shipAddress" placeholder="Name&#10;Company&#10;Street, City, State ZIP" style="min-height:80px"></textarea>
+    </div>
+    <div class="fg"><label>Ship by date</label><input type="date" id="shipByDate"></div>
+    <div class="btn-row">
+      <button class="btn primary" onclick="goStep(1)">Next →</button>
+    </div>
+  </div>
+
+  <!-- Step 1: Pieces -->
+  <div id="s1" class="step">
+    <div class="step-header">
+      <div class="step-num">Step 2 of 5</div>
+      <div class="step-title">Pieces <span class="badge" id="skuBadge">1</span></div>
+      <div class="step-sub">Add each piece with SKU, fabric, dimensions, and pillows.</div>
+    </div>
+    <div class="feed-bar"><div class="dot pulse" id="liveDot"></div><span id="feedStatus">Connecting to fabric ETA feed…</span></div>
+    <div id="skuList"></div>
+    <button class="add-dashed" onclick="addSku()">+ Add another piece</button>
+    <div class="btn-row">
+      <button class="btn ghost" onclick="goStep(0)">← Back</button>
+      <button class="btn primary" onclick="goStep(2)">Next →</button>
+    </div>
+  </div>
+
+  <!-- Step 2: Construction -->
+  <div id="s2" class="step">
+    <div class="step-header">
+      <div class="step-num">Step 3 of 5</div>
+      <div class="step-title">Seat & back construction</div>
+      <div class="step-sub">These specs apply to all pieces in this order.</div>
+    </div>
+    <div class="two-col">
+      <div class="fg"><label>Seat comfort</label>
+        <select id="seatComfort" onchange="toggleCustom(this,'seatComfortCustom')">
+          <option value="">Select…</option>
+          <option>Feather + Down</option><option>Down Alt</option>
+          <option>Down Alt (Trillium)</option><option>Memory</option><option>Standard</option>
+          <option value="__custom__">Other (specify below)</option>
+        </select>
+        <input type="text" id="seatComfortCustom" placeholder="Describe seat comfort…" style="display:none;margin-top:6px">
+      </div>
+      <div class="fg"><label>Seat attachment</label>
+        <select id="seatAttachment">
+          <option value="">Select…</option>
+          <option>Loose</option><option>Reversible</option><option>Attached</option><option>Tight</option>
+        </select>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="fg"><label>Back comfort</label>
+        <select id="backComfort" onchange="toggleCustom(this,'backComfortCustom')">
+          <option value="">Select…</option>
+          <option>Feather + Down</option><option>Polyester</option>
+          <option value="__custom__">Other (specify below)</option>
+        </select>
+        <input type="text" id="backComfortCustom" placeholder="Describe back comfort…" style="display:none;margin-top:6px">
+      </div>
+      <div class="fg"><label>Back attachment</label>
+        <select id="backAttachment">
+          <option value="">Select…</option>
+          <option>Loose</option><option>Reversible</option><option>Attached</option><option>Tight</option>
+        </select>
+      </div>
+    </div>
+    <hr class="divider">
+    <div class="fg"><label>Sewing trim & placement</label>
+      <textarea id="sewingTrim" placeholder="Tufting, welting, stitch type and placement…"></textarea>
+    </div>
+    <div class="two-col">
+      <div class="fg"><label>Seat detail</label><textarea id="seatDetail" placeholder="Cushion construction, channeling…"></textarea></div>
+      <div class="fg"><label>Back detail</label><textarea id="backDetail" placeholder="Back construction, channeling…"></textarea></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn ghost" onclick="goStep(1)">← Back</button>
+      <button class="btn primary" onclick="goStep(3)">Next →</button>
+    </div>
+  </div>
+
+  <!-- Step 3: Base & image -->
+  <div id="s3" class="step">
+    <div class="step-header">
+      <div class="step-num">Step 4 of 5</div>
+      <div class="step-title">Base, legs & product image</div>
+    </div>
+    <div class="two-col">
+      <div class="fg"><label>Base / leg species</label><input type="text" id="legSpecies" placeholder="e.g. Walnut, Oak"></div>
+      <div class="fg"><label>Base / leg finish</label><input type="text" id="legFinish" placeholder="e.g. Natural, Dark Walnut"></div>
+    </div>
+    <div class="fg"><label>Base / leg description & height</label><input type="text" id="legDesc" placeholder="e.g. Tapered leg, 4″ H"></div>
+    <div class="fg"><label>Other details</label><textarea id="otherDetails" placeholder="Extra instructions, compliance notes…"></textarea></div>
+    <hr class="divider">
+    <div class="section-lbl">Product image</div>
+    <div id="dropZone" class="img-drop" onclick="document.getElementById('imgFileInput').click()">
+      <div style="font-size:2rem">📷</div>
+      <div>Click to upload, drag & drop, or paste (Ctrl/Cmd+V)</div>
+      <div style="font-size:11px;color:var(--text3)">JPG, PNG, GIF</div>
+      <input type="file" id="imgFileInput" accept="image/*" style="display:none" onchange="handleImg(this.files[0])">
+    </div>
+    <div class="btn-row">
+      <button class="btn ghost" onclick="goStep(2)">← Back</button>
+      <button class="btn primary" onclick="goStep(4)">Preview & Save →</button>
+    </div>
+  </div>
+
+  <!-- Step 4: Preview -->
+  <div id="s4" class="step">
+    <div class="step-header">
+      <div class="step-num">Step 5 of 5</div>
+      <div class="step-title">Preview & save</div>
+    </div>
+    <!-- Quick-edit jump bar -->
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem;padding:.65rem .85rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);align-items:center">
+      <span style="font-size:12px;color:var(--text2);margin-right:4px;font-weight:500">Jump to edit:</span>
+      <button class="btn sm ghost" onclick="goStep(0)" style="font-size:12px">✎ Order info</button>
+      <button class="btn sm ghost" onclick="goStep(1)" style="font-size:12px">✎ Pieces</button>
+      <button class="btn sm ghost" onclick="goStep(2)" style="font-size:12px">✎ Construction</button>
+      <button class="btn sm ghost" onclick="goStep(3)" style="font-size:12px">✎ Base & image</button>
+    </div>
+    <div id="previewSheet" class="preview-wrap"></div>
+    <div class="btn-row">
+      <button class="btn ghost" onclick="goStep(3)">← Back</button>
+      <button class="btn primary" onclick="saveProject()">💾 Save project</button>
+      <button class="btn" onclick="exportPDF()">⬇ PDF</button>
+      <button class="btn" onclick="exportExcel()">⬇ Excel</button>
+      <button class="btn" onclick="exportCSV()">⬇ CSV</button>
+      <button class="btn" onclick="copyAsText()">📋 Copy text</button>
+      <button class="btn ghost" onclick="resetBuilder()">↺ Start over</button>
+    </div>
+    <div id="saveMsg" style="font-size:13px;color:var(--green);margin-top:8px;font-weight:500"></div>
+  </div>
+</div>
+
+<!-- ═══════════ DASHBOARD ═══════════ -->
+<div id="screen-dashboard" class="screen">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+    <div style="font-size:17px;font-weight:600">All projects</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn sm" onclick="exportAllExcel()">⬇ Export all (Excel)</button>
+      <button class="btn sm" onclick="exportAllCSV()">⬇ Export all (CSV)</button>
+    </div>
+  </div>
+  <div class="filter-bar">
+    <input type="text" id="filterRetailer" placeholder="Filter by retailer…" oninput="renderDashboard()">
+    <select id="filterStatus" onchange="renderDashboard()">
+      <option value="">All statuses</option><option value="open">Open</option><option value="done">Done</option><option value="archived">Archived</option>
+    </select>
+    <select id="filterSort" onchange="renderDashboard()">
+      <option value="due">Sort: due date</option>
+      <option value="created">Sort: created</option>
+      <option value="retailer">Sort: retailer A–Z</option>
+    </select>
+  </div>
+  <div id="dashContent"></div>
+</div>
+
+<!-- ═══════════ RETAILERS ═══════════ -->
+<div id="screen-retailers" class="screen">
+  <div style="font-size:17px;font-weight:600;margin-bottom:1rem">Retailer manager</div>
+  <div style="display:flex;gap:8px;margin-bottom:1.25rem;max-width:380px">
+    <input type="text" id="newRetInput" placeholder="Add retailer…" onkeydown="if(event.key==='Enter')addRetailer()">
+    <button class="btn primary sm" onclick="addRetailer()">+ Add</button>
+  </div>
+  <div id="retList"></div>
+</div>
+
+</div><!-- /content -->
+</div><!-- /app-shell -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+// ══════════════════════════════════════
+// DATA
+// ══════════════════════════════════════
+const SKU_MAP={
+  '00XXX':'CHAIR 1/2','01XXX':'ARM CHAIR','02XXX':'OTTOMAN','03XXX':'ARMLESS SOFA',
+  '04LFX':'LAF CHAIR','04RFX':'RAF CHAIR','10XXX':'ARMLESS CHAIR','11XXX':'CORNER WEDGE',
+  '13LFX':'LSF BUMPER CHAISE','13RFX':'RSF BUMPER CHAISE','15XXX':'CORNER UNIT',
+  '20XXX':'LOVESEAT','26LFX':'LAF CONDO SOFA','26RFX':'RAF CONDO SOFA',
+  '35LFX':'LAF SOFA','35RFX':'RAF SOFA','25LFX':'LAF LOVESEAT','25RFX':'RAF LOVESEAT',
+  '27LFX':'LAF SOFA','27RFX':'RAF SOFA','30XXX':'SOFA','38XXX':'CUDDLE OTTOMAN',
+  '60XXX':'CONDO SOFA','70XXX':'ESTATE SOFA','74LFX':'LAF CHAIR 1/2','74RFX':'RAF CHAIR 1/2',
+  '80LFX':'LAF CUDDLE CHAISE','80RFX':'RAF CUDDLE CHAISE','82LFX':'LAF CHAISE','82RFX':'RAF CHAISE',
+  '28LFX':'LSF ARMLESS CHAISE','28RFX':'RSF ARMLESS CHAISE','32LFX':'LAF SOFA SECTIONAL',
+  '32RFX':'RAF SOFA SECTIONAL','84LFX':'LAF CUDDLER CHAISE','84RFX':'RAF CUDDLER CHAISE',
+  '90AAX':'SOFA W/2 SEAT CUSHIONS','90BBX':'CHAISE CUSHION & OTTOMAN BASE','90CCX':'SEAT CUSHION',
+  '06XXM':'ARMLESS FULL SLEEPER','21XXM':'FULL SLEEPER','23LFM':'LAF FULL SLEEPER',
+  '23RFM':'RAF FULL SLEEPER','33LFM':'LAF QUEEN SLEEPER','33RFM':'RAF QUEEN SLEEPER',
+  '31XXM':'QUEEN SLEEPER','85XXM':'CHAIRBED','29XXX':'CHAISE','34XXX':'BUMPER OTTOMAN',
+  '12XXX':'ROUNDED WEDGE','05XXX':'ARMLESS LOVESEAT','57XXX':'ACCENT CHAIR','16XXX':'SWIVEL CHAIR',
+  '50HBX':'QUEEN HEADBOARD','50RLX':'QUEEN SET OF RAILS + FB','50STX':'QUEEN STORAGE RAILS','50DWX':'QUEEN STORAGE DRAWERS'
+};
+const ALL_SKUS=Object.keys(SKU_MAP);
+const ALL_DESCS=[...new Set(Object.values(SKU_MAP))];
+const DEFAULT_RETAILERS=['CB2','Crate & Barrel','West Elm','Pottery Barn','RH (Restoration Hardware)','Article','Joybird','Castlery','Arhaus','Z Gallerie'];
+const SHEET_ID='';
+const SHEET_TAB='';
+const APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbym_Dh4DP5pgnUSmGYaQhcSmV5PLKZmJ6oMs2fz1i6wKt9rs3qHLqBl6GPHHz667OwX-w/exec';
+
+// ══════════════════════════════════════
+// STATE
+// ══════════════════════════════════════
+let currentStep=0, skus=[], imgDataUrl=null, fabricETAs={}, etaTimer=null, editingId=null;
+
+// ══════════════════════════════════════
+// LOCAL STORAGE (shared via localStorage for same-device, falls back gracefully)
+// ══════════════════════════════════════
+// ── Local storage for retailers (device only) ──
+function lsGet(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch{return null}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}
+
+function getRetailers(){return lsGet('ss_retailers')||DEFAULT_RETAILERS}
+function setRetailers(arr){lsSet('ss_retailers',arr)}
+
+// ── Google Sheets project storage (shared across team) ──
+let projectsCache=null;
+let projectsCacheTime=0;
+
+async function getProjects(){
+  // Use cache if fresh (30s)
+  if(projectsCache&&Date.now()-projectsCacheTime<30000)return projectsCache;
+  try{
+    const res=await fetch(APPS_SCRIPT_URL,{method:'GET'});
+    const data=await res.json();
+    if(data.success){
+      projectsCache=data.data.map(p=>{
+        if(p.skusJSON){try{p.skus=JSON.parse(p.skusJSON)}catch{p.skus=[]}}
+        return p;
+      });
+      projectsCacheTime=Date.now();
+      return projectsCache;
+    }
+  }catch(e){console.error('Sheet read error',e)}
+  // Fallback to localStorage
+  const keys=Object.keys(localStorage).filter(k=>k.startsWith('ss_proj_'));
+  return keys.map(k=>lsGet(k)).filter(Boolean);
+}
+
+async function saveProj(p){
+  // Save skus as JSON string for the sheet
+  const sheetProj={...p, skusJSON:JSON.stringify(p.skus||[])};
+  delete sheetProj.skus;
+  delete sheetProj.imgDataUrl; // too large for sheets
+  try{
+    await fetch(APPS_SCRIPT_URL,{
+      method:'POST',
+      body:JSON.stringify({action:'save',project:sheetProj})
+    });
+    projectsCache=null; // invalidate cache
+  }catch(e){console.error('Sheet write error',e)}
+  // Also save locally as backup (with image)
+  try{localStorage.setItem('ss_proj_'+p.id,JSON.stringify(p))}catch{}
+}
+
+async function delProj(id){
+  try{
+    await fetch(APPS_SCRIPT_URL,{
+      method:'POST',
+      body:JSON.stringify({action:'delete',id})
+    });
+    projectsCache=null;
+  }catch(e){console.error('Sheet delete error',e)}
+  try{localStorage.removeItem('ss_proj_'+id)}catch{}
+}
+
+// ══════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5)}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+function v(id){return(document.getElementById(id)||{}).value||''}
+function fmtDate(d){if(!d)return'';const p=d.split('-');return p.length===3?p[1]+'/'+p[2]+'/'+p[0]:d}
+function hideSug(id){const el=document.getElementById(id);if(el)el.style.display='none'}
+function toggleCustom(sel,cid){document.getElementById(cid).style.display=sel.value==='__custom__'?'block':'none'}
+function getSelVal(sid,cid){const s=document.getElementById(sid);return s&&s.value==='__custom__'?v(cid):s?s.value:''}
+function newSku(){return{id:uid(),skuCode:'',desc:'',qty:'',bodyFabric:'',bodyFabricETA:'',collection:'',seatDepth:'',overallDims:'',railSize:'',seats:'',backs:'',pillows:[]}}
+function newPillow(){return{id:uid(),style:'',qty:'',size:'',fabricColorway:'',fill:''}}
+
+// ══════════════════════════════════════
+// SCREEN NAV
+// ══════════════════════════════════════
+function showScreen(name,btn){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  if(btn)btn.classList.add('active');
+  if(name==='dashboard')renderDashboard();
+  if(name==='retailers')renderRetailers();
+}
+
+// ══════════════════════════════════════
+// STEP NAV
+// ══════════════════════════════════════
+const STEP_LABELS=['Order info','Pieces','Construction','Base & image','Preview'];
+function goStep(n){
+  document.getElementById('s'+currentStep).classList.remove('active');
+  currentStep=n;
+  document.getElementById('s'+n).classList.add('active');
+  for(let i=0;i<5;i++){
+    const seg=document.getElementById('seg'+i);
+    const lbl=document.getElementById('plbl'+i);
+    seg.classList.remove('active','done');
+    lbl&&lbl.classList.remove('active');
+    if(i<n)seg.classList.add('done');
+    else if(i===n){seg.classList.add('active');lbl&&lbl.classList.add('active')}
+  }
+  if(n===4)buildPreview();
+  window.scrollTo(0,0);
+}
+
+// ══════════════════════════════════════
+// RETAILER AUTOCOMPLETE
+// ══════════════════════════════════════
+function onRetailerType(){
+  const val=(document.getElementById('retailerInput').value||'').toLowerCase();
+  const list=getRetailers();
+  const matches=val?list.filter(r=>r.toLowerCase().includes(val)):list.slice(0,10);
+  const box=document.getElementById('retailerSug');
+  if(!matches.length){box.style.display='none';return}
+  box.innerHTML=matches.map(r=>`<div class="sug-item" onmousedown="pickRetailer('${esc(r)}')">${r}</div>`).join('');
+  box.style.display='block';
+}
+function pickRetailer(r){document.getElementById('retailerInput').value=r;hideSug('retailerSug')}
+
+// ══════════════════════════════════════
+// FABRIC ETA FEED
+// ══════════════════════════════════════
+async function fetchETAs(){ document.getElementById('feedStatus').textContent='ETA feed disabled — enter manually'; document.getElementById('liveDot').className='dot dead'; }
+function startFeed(){fetchETAs();if(etaTimer)clearInterval(etaTimer);etaTimer=setInterval(fetchETAs,30000)}
+function getETA(fab){
+  if(!fab)return null;
+  const key=fab.toLowerCase().trim().replace(/\s+/g,' ');
+  // Exact match first
+  if(fabricETAs[key])return fabricETAs[key];
+  // Try collapsing any extra internal spaces
+  const noExtraSpace=key.replace(/\s+/g,' ');
+  if(fabricETAs[noExtraSpace])return fabricETAs[noExtraSpace];
+  // Partial match — fabric name contains or is contained by key
+  for(const [k,v] of Object.entries(fabricETAs)){
+    if(k&&v&&(k.includes(key)||key.includes(k)))return v;
+  }
+  return null;
+}
+function parseETA(eta){
+  if(!eta)return null;
+  // Already a full date
+  let d=new Date(eta);
+  if(!isNaN(d))return d;
+  // Short date like "6/17" — assume current or next year
+  if(/^\d{1,2}\/\d{1,2}$/.test(eta.trim())){
+    const [m,day]=eta.trim().split('/');
+    const now=new Date();
+    d=new Date(now.getFullYear(),parseInt(m)-1,parseInt(day));
+    // If that date already passed this year, assume next year
+    if(d<now)d=new Date(now.getFullYear()+1,parseInt(m)-1,parseInt(day));
+    return d;
+  }
+  // Short date like "6/17/26" (2-digit year)
+  if(/^\d{1,2}\/\d{1,2}\/\d{2}$/.test(eta.trim())){
+    const [m,day,yr]=eta.trim().split('/');
+    d=new Date(2000+parseInt(yr),parseInt(m)-1,parseInt(day));
+    return isNaN(d)?null:d;
+  }
+  return null;
+}
+function etaPill(eta){
+  if(!eta)return'<span class="eta-pill eta-none">No ETA</span>';
+  const d=parseETA(eta);
+  if(!d)return`<span class="eta-pill eta-none">${eta}</span>`;
+  const diff=(d-new Date())/86400000;
+  if(diff<0)return`<span class="eta-pill eta-late">Late: ${eta}</span>`;
+  if(diff<14)return`<span class="eta-pill eta-warn">Soon: ${eta}</span>`;
+  return`<span class="eta-pill eta-ok">${eta}</span>`;
+}
+
+// ══════════════════════════════════════
+// SKU AUTOCOMPLETE
+// ══════════════════════════════════════
+function onSkuCode(skuId,val){
+  const si=skus.findIndex(s=>s.id===skuId);skus[si].skuCode=val;
+  const matched=SKU_MAP[val.toUpperCase()];
+  if(matched&&!skus[si].desc){skus[si].desc=matched;const el=document.getElementById('desc-'+skuId);if(el)el.value=matched}
+  const up=val.toUpperCase();
+  const matches=ALL_SKUS.filter(k=>k.startsWith(up)&&k!==up).slice(0,8);
+  const box=document.getElementById('skuSug-'+skuId);
+  if(!matches.length||!val){box.style.display='none';return}
+  box.innerHTML=matches.map(k=>`<div class="sug-item" onmousedown="pickSkuCode('${skuId}','${k}')"><b>${k}</b> — ${SKU_MAP[k]}</div>`).join('');
+  box.style.display='block';
+}
+function pickSkuCode(skuId,code){
+  const si=skus.findIndex(s=>s.id===skuId);
+  skus[si].skuCode=code;skus[si].desc=SKU_MAP[code]||'';
+  const c=document.getElementById('sku-'+skuId);if(c)c.value=code;
+  const d=document.getElementById('desc-'+skuId);if(d)d.value=SKU_MAP[code]||'';
+  hideSug('skuSug-'+skuId);
+}
+function onSkuDesc(skuId,val){
+  const si=skus.findIndex(s=>s.id===skuId);skus[si].desc=val;
+  const up=val.toUpperCase();
+  const code=Object.entries(SKU_MAP).find(([k,v2])=>v2===up)?.[0];
+  if(code&&!skus[si].skuCode){skus[si].skuCode=code;const el=document.getElementById('sku-'+skuId);if(el)el.value=code}
+  const matches=ALL_DESCS.filter(d=>d.includes(up)&&d!==up).slice(0,8);
+  const box=document.getElementById('descSug-'+skuId);
+  if(!matches.length||!val){box.style.display='none';return}
+  box.innerHTML=matches.map(d=>{const k=Object.entries(SKU_MAP).find(([,v2])=>v2===d)?.[0]||'';return`<div class="sug-item" onmousedown="pickSkuDesc('${skuId}','${esc(d)}','${k}')">${d}<span style="color:var(--text3);font-size:12px;margin-left:6px">${k}</span></div>`}).join('');
+  box.style.display='block';
+}
+function pickSkuDesc(skuId,desc,code){
+  const si=skus.findIndex(s=>s.id===skuId);
+  skus[si].desc=desc;skus[si].skuCode=code;
+  const c=document.getElementById('sku-'+skuId);if(c)c.value=code;
+  const d=document.getElementById('desc-'+skuId);if(d)d.value=desc;
+  hideSug('descSug-'+skuId);
+}
+
+// ══════════════════════════════════════
+// PILLOW FABRIC MEMORY
+// ══════════════════════════════════════
+function pillowFabricMem(){
+  const map={};
+  skus.forEach(s=>s.pillows.forEach(p=>{if(p.size&&p.fabricColorway)map[p.size.toLowerCase().trim()]=p.fabricColorway}));
+  return map;
+}
+
+// ══════════════════════════════════════
+// RENDER PIECES
+// ══════════════════════════════════════
+function renderSkus(){
+  const list=document.getElementById('skuList');
+  if(!list)return;
+  const firstFabric=skus[0]?.bodyFabric||'';
+  const mem=pillowFabricMem();
+  list.innerHTML='';
+  skus.forEach((sku,si)=>{
+    const sheetETA=getETA(sku.bodyFabric);
+    const dispETA=sheetETA||sku.bodyFabricETA||'';
+    const sugFab=si>0&&!sku.bodyFabric&&firstFabric?firstFabric:'';
+    const card=document.createElement('div');
+    card.className='card';
+    card.innerHTML=`
+      <div class="card-hdr">
+        <div class="card-title"><span class="piece-num">${si+1}</span>Piece ${si+1}</div>
+        ${skus.length>1?`<button class="btn danger sm" onclick="removeSku('${sku.id}')">✕ Remove</button>`:''}
+      </div>
+      <div class="two-col">
+        <div class="fg rel">
+          <label>SKU code</label>
+          <input type="text" id="sku-${sku.id}" value="${esc(sku.skuCode)}" placeholder="e.g. 30XXX"
+            oninput="onSkuCode('${sku.id}',this.value)"
+            onblur="setTimeout(()=>hideSug('skuSug-${sku.id}'),200)" autocomplete="off">
+          <div class="sug-box" id="skuSug-${sku.id}" style="display:none"></div>
+        </div>
+        <div class="fg rel">
+          <label>Description</label>
+          <input type="text" id="desc-${sku.id}" value="${esc(sku.desc)}" placeholder="e.g. SOFA"
+            oninput="onSkuDesc('${sku.id}',this.value)"
+            onblur="setTimeout(()=>hideSug('descSug-${sku.id}'),200)" autocomplete="off">
+          <div class="sug-box" id="descSug-${sku.id}" style="display:none"></div>
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="fg"><label>Qty</label>
+          <input type="text" value="${esc(sku.qty)}" placeholder="1" oninput="skus[${si}].qty=this.value">
+        </div>
+        <div class="fg"><label>Collection <span style="font-weight:400;text-transform:none;font-size:11px">(for dim. reference)</span></label>
+          <input type="text" value="${esc(sku.collection)}" placeholder="e.g. Nomad, Dylan" oninput="skus[${si}].collection=this.value">
+        </div>
+      </div>
+      <hr class="divider">
+      <div class="section-lbl">Body fabric</div>
+      <div style="display:grid;grid-template-columns:1fr 155px;gap:10px;align-items:start">
+        <div class="fg" style="margin:0">
+          <label>Fabric name & colorway<span class="suggest-link" id="fabSugLink-${sku.id}" style="${sugFab?'display:inline':'display:none'}" onclick="acceptFabricSug(${si},'${esc(sugFab)}')">${sugFab?'→ use "'+esc(sugFab)+'"':''}</span></label>
+          <input type="text" id="bodyFab-${sku.id}" value="${esc(sku.bodyFabric)}" placeholder="e.g. Camila Olive"
+            oninput="skus[${si}].bodyFabric=this.value;onBodyFabricChange('${sku.id}',${si})">
+        </div>
+        <div class="fg" style="margin:0">
+          <label>ETA${sheetETA?' <span style="font-size:10px;color:var(--green)">(live)</span>':''}</label>
+          <input type="text" id="etaFld-${sku.id}" value="${esc(dispETA)}" placeholder="mm/dd/yyyy"
+            style="border-color:${sheetETA?'var(--green)':'var(--border)'}"
+            oninput="skus[${si}].bodyFabricETA=this.value">
+        </div>
+      </div>
+      <div style="margin-top:5px" id="etaPill-${sku.id}">${etaPill(dispETA)}</div>
+      <hr class="divider">
+      <div class="section-lbl">Dimensions & configuration</div>
+      <div class="three-col">
+        <div class="fg"><label>Seat depth</label>
+          <input type="text" value="${esc(sku.seatDepth)}" placeholder='e.g. 24"' oninput="skus[${si}].seatDepth=this.value"></div>
+        <div class="fg"><label>Overall dims. (W×D×H)</label>
+          <input type="text" value="${esc(sku.overallDims)}" placeholder='84"×38"×32"' oninput="skus[${si}].overallDims=this.value"></div>
+        <div class="fg"><label>Rail size</label>
+          <input type="text" value="${esc(sku.railSize)}" placeholder="e.g. Queen" oninput="skus[${si}].railSize=this.value"></div>
+      </div>
+      <div class="two-col">
+        <div class="fg"><label># seats</label>
+          <input type="text" value="${esc(sku.seats)}" placeholder="1" oninput="skus[${si}].seats=this.value"></div>
+        <div class="fg"><label># backs</label>
+          <input type="text" value="${esc(sku.backs)}" placeholder="1" oninput="skus[${si}].backs=this.value"></div>
+      </div>
+      <hr class="divider">
+      <div class="section-lbl">Accent pillows</div>
+      <div class="pill-hdr">
+        <span>Style</span><span>Qty</span><span>Size</span><span>Fabric & colorway</span><span>Fill</span><span></span>
+      </div>
+      <div id="pills-${sku.id}">${sku.pillows.map((p,pi)=>pillowHTML(si,pi,p,mem)).join('')}</div>
+      <button class="add-dashed" onclick="addPillow('${sku.id}')">+ Add pillow</button>
+    `;
+    list.appendChild(card);
+  });
+  document.getElementById('skuBadge').textContent=skus.length;
+}
+
+function pillowHTML(si,pi,p,mem){
+  const memFab=p.size&&!p.fabricColorway?(mem[p.size.toLowerCase().trim()]||''):'';
+  return`<div class="pill-row">
+    <input type="text" value="${esc(p.style)}" placeholder="Lumbar" oninput="skus[${si}].pillows[${pi}].style=this.value">
+    <input type="text" value="${esc(p.qty)}" placeholder="2" oninput="skus[${si}].pillows[${pi}].qty=this.value" style="text-align:center">
+    <input type="text" value="${esc(p.size)}" placeholder='18×18"' oninput="skus[${si}].pillows[${pi}].size=this.value">
+    <input type="text" value="${esc(p.fabricColorway||memFab)}" placeholder="${memFab?'→ '+memFab:'e.g. Camila Olive'}"
+      style="${memFab&&!p.fabricColorway?'border-color:var(--blue)':''}"
+      oninput="skus[${si}].pillows[${pi}].fabricColorway=this.value">
+    <select onchange="skus[${si}].pillows[${pi}].fill=this.value">
+      <option value="" ${!p.fill?'selected':''}>Fill…</option>
+      <option ${p.fill==='Feather'?'selected':''}>Feather</option>
+      <option ${p.fill==='Polyester'?'selected':''}>Polyester</option>
+    </select>
+    <button class="rm-btn" onclick="removePillow('${skus[si].id}','${p.id}')">×</button>
+  </div>`;
+}
+
+function acceptFabricSug(si,fab){
+  skus[si].bodyFabric=fab;
+  const el=document.getElementById('bodyFab-'+skus[si].id);if(el)el.value=fab;
+  onBodyFabricChange(skus[si].id,si);
+}
+function onBodyFabricChange(skuId,si){
+  // Update ETA in place without re-rendering entire list
+  const eta=getETA(skus[si].bodyFabric);
+  if(eta){
+    skus[si].bodyFabricETA=eta;
+    const etaEl=document.getElementById('etaFld-'+skuId);
+    if(etaEl){etaEl.value=eta;etaEl.style.borderColor='var(--green)'}
+  }
+  // Update the ETA pill display in place
+  const pillEl=document.getElementById('etaPill-'+skuId);
+  if(pillEl)pillEl.innerHTML=etaPill(eta||skus[si].bodyFabricETA);
+  // Update suggest links on subsequent pieces without re-render
+  if(si===0){
+    skus.forEach((s,i)=>{
+      if(i===0)return;
+      const lnk=document.getElementById('fabSugLink-'+s.id);
+      const fabInput=document.getElementById('bodyFab-'+s.id);
+      if(!lnk)return;
+      if((!fabInput||!fabInput.value)&&skus[0].bodyFabric){
+        lnk.style.display='inline';
+        lnk.textContent=' → use "'+skus[0].bodyFabric+'"';
+        lnk.setAttribute('onclick',"acceptFabricSug("+i+",'"+skus[0].bodyFabric.replace(/'/g,"\'")+"')");
+      } else {
+        lnk.style.display='none';
+      }
+    });
+  }
+}
+function addSku(){skus.push(newSku());renderSkus()}
+function removeSku(id){skus=skus.filter(s=>s.id!==id);renderSkus()}
+function addPillow(id){const si=skus.findIndex(s=>s.id===id);skus[si].pillows.push(newPillow());renderSkus()}
+function removePillow(skuId,pid){const si=skus.findIndex(s=>s.id===skuId);skus[si].pillows=skus[si].pillows.filter(p=>p.id!==pid);renderSkus()}
+
+// ══════════════════════════════════════
+// IMAGE
+// ══════════════════════════════════════
+function handleImg(file){
+  if(!file)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    imgDataUrl=e.target.result;
+    const dz=document.getElementById('dropZone');
+    dz.innerHTML=`<img src="${imgDataUrl}" alt="Product"><div style="font-size:12px;margin-top:6px;color:var(--text2)">Click to change</div>`;
+    dz.onclick=()=>document.getElementById('imgFileInput').click();
+  };r.readAsDataURL(file);
+}
+document.addEventListener('paste',e=>{
+  for(const item of(e.clipboardData?.items||[])){if(item.type.startsWith('image/')){handleImg(item.getAsFile());break}}
+});
+const dz=document.getElementById('dropZone');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over')});
+dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('over');handleImg(e.dataTransfer.files[0])});
+
+// Document drop zone
+const docDz=document.getElementById('docDropZone');
+docDz.addEventListener('dragover',e=>{
+  e.preventDefault();
+  docDz.style.borderColor='var(--blue)';
+  docDz.style.background='var(--blue-light)';
+});
+docDz.addEventListener('dragleave',()=>{
+  docDz.style.borderColor='var(--border2)';
+  docDz.style.background='var(--bg)';
+});
+docDz.addEventListener('drop',e=>{
+  e.preventDefault();
+  docDz.style.borderColor='var(--border2)';
+  docDz.style.background='var(--bg)';
+  const file=e.dataTransfer.files[0];
+  if(!file)return;
+  // Show filename in zone
+  docDz.innerHTML=`<div style="font-size:1.5rem;margin-bottom:.35rem">📄</div><div style="font-size:13px;font-weight:500;color:var(--text)">${file.name}</div><div style="font-size:11px;color:var(--text3);margin-top:3px">Click to change file</div><input type="file" id="pdfInput" accept=".pdf,.txt,.doc,.docx" style="display:none" onchange="handleDocUpload(this)">`;
+  docDz.onclick=()=>document.getElementById('pdfInput').click();
+  // Create a fake input to trigger handleDocUpload
+  const fakeInput={files:[file]};
+  handleDocUpload(fakeInput);
+});
+
+// Also allow dragging docs onto the whole page when on step 0
+document.addEventListener('dragover',e=>{
+  if(currentStep===0&&e.dataTransfer.types.includes('Files')){e.preventDefault()}
+});
+document.addEventListener('drop',e=>{
+  if(currentStep!==0)return;
+  const file=e.dataTransfer.files[0];
+  if(!file)return;
+  const docTypes=['.pdf','.txt','.doc','.docx'];
+  const isDoc=docTypes.some(ext=>file.name.toLowerCase().endsWith(ext));
+  if(isDoc){
+    e.preventDefault();
+    docDz.innerHTML=`<div style="font-size:1.5rem;margin-bottom:.35rem">📄</div><div style="font-size:13px;font-weight:500;color:var(--text)">${file.name}</div><div style="font-size:11px;color:var(--text3);margin-top:3px">Click to change file</div><input type="file" id="pdfInput" accept=".pdf,.txt,.doc,.docx" style="display:none" onchange="handleDocUpload(this)">`;
+    docDz.onclick=()=>document.getElementById('pdfInput').click();
+    docDz.style.borderColor='var(--green)';
+    handleDocUpload({files:[file]});
+  }
+});
+
+// ══════════════════════════════════════
+// AI PARSER
+// ══════════════════════════════════════
+async function runAIParser(){
+  const text=v('pasteInput').trim();
+  if(!text){alert('Please paste some text first.');return}
+  document.getElementById('aiThinking').style.display='block';
+  document.getElementById('parsedPreview').style.display='none';
+  const skuList=Object.entries(SKU_MAP).map(([k,v2])=>`${k}=${v2}`).join(', ');
+  const prompt=`You are a furniture prototype request form assistant. Extract information from the following text and return ONLY a JSON object with these fields (leave blank if not found):
+{
+  "retailer": "",
+  "requestedDate": "YYYY-MM-DD or blank",
+  "dueDate": "YYYY-MM-DD or blank",
+  "sampleDue": "YYYY-MM-DD or blank",
+  "shipAddress": "",
+  "shipByDate": "YYYY-MM-DD or blank",
+  "seatComfort": "one of: Feather + Down, Down Alt, Down Alt (Trillium), Memory, Standard, or blank",
+  "seatAttachment": "one of: Loose, Reversible, Attached, Tight, or blank",
+  "backComfort": "one of: Feather + Down, Polyester, or blank",
+  "backAttachment": "one of: Loose, Reversible, Attached, Tight, or blank",
+  "sewingTrim": "",
+  "legSpecies": "",
+  "legFinish": "",
+  "legDesc": "",
+  "otherDetails": "",
+  "skus": [
+    {
+      "skuCode": "match from this list: ${skuList.slice(0,500)}",
+      "desc": "",
+      "qty": "",
+      "bodyFabric": "fabric name and colorway together",
+      "collection": "",
+      "seatDepth": "",
+      "overallDims": "",
+      "railSize": "",
+      "seats": "",
+      "backs": "",
+      "pillows": [
+        {"style": "", "qty": "", "size": "", "fabricColorway": "", "fill": "Feather or Polyester or blank"}
+      ]
+    }
+  ]
+}
+Return ONLY the JSON, no explanation. Text to parse:
+${text.slice(0,3000)}`;
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1500,messages:[{role:'user',content:prompt}]})
+    });
+    if(!res.ok){
+      const err=await res.json().catch(()=>({}));
+      throw new Error(err.error?.message||`API error ${res.status}`);
+    }
+    const data=await res.json();
+    const raw=data.content?.find(c=>c.type==='text')?.text||'';
+    const clean=raw.replace(/```json|```/g,'').trim();
+    const parsed=JSON.parse(clean);
+    applyParsedData(parsed);
+    const fields=[];
+    if(parsed.retailer)fields.push(`<b>Retailer:</b> ${parsed.retailer}`);
+    if(parsed.dueDate)fields.push(`<b>Due:</b> ${parsed.dueDate}`);
+    if(parsed.seatComfort)fields.push(`<b>Seat:</b> ${parsed.seatComfort}`);
+    if(parsed.skus?.length)fields.push(`<b>Pieces:</b> ${parsed.skus.map(s=>s.desc||s.skuCode).filter(Boolean).join(', ')}`);
+    if(parsed.skus?.[0]?.bodyFabric)fields.push(`<b>Fabric:</b> ${parsed.skus[0].bodyFabric}`);
+    if(parsed.skus?.[0]?.overallDims)fields.push(`<b>Dims:</b> ${parsed.skus[0].overallDims}`);
+    document.getElementById('parsedPreview').innerHTML=fields.length?'✓ Extracted: '+fields.join(' &nbsp;·&nbsp; '):'✓ Done — review fields below.';
+    document.getElementById('parsedPreview').style.display='block';
+  }catch(e){
+    document.getElementById('parsedPreview').innerHTML=`Could not parse: ${e.message}. Try pasting the text manually.`;
+    document.getElementById('parsedPreview').style.display='block';
+  }
+  document.getElementById('aiThinking').style.display='none';
+}
+
+async function handleDocUpload(input){
+  const file=input.files[0];if(!file)return;
+  const skuList=Object.entries(SKU_MAP).map(([k,v2])=>`${k}=${v2}`).join(', ');
+  const extractPrompt=`You are a furniture prototype request assistant. Extract ALL available spec information from this document and return ONLY a valid JSON object with these exact fields (leave as empty string if not found):
+{
+  "retailer": "brand or retailer name found in header",
+  "requestedDate": "YYYY-MM-DD or blank",
+  "dueDate": "YYYY-MM-DD or blank",
+  "sampleDue": "YYYY-MM-DD or blank - look for sample due, rev date, or deadline dates",
+  "shipAddress": "",
+  "shipByDate": "YYYY-MM-DD or blank",
+  "seatComfort": "closest match: Feather + Down, Down Alt, Down Alt (Trillium), Memory, Standard — look for foam type, seat fill, cushion construction",
+  "seatAttachment": "closest match: Loose, Reversible, Attached, Tight — look for tight seat/cushion",
+  "backComfort": "closest match: Feather + Down, Polyester — look for back fill",
+  "backAttachment": "closest match: Loose, Reversible, Attached, Tight — look for tight back",
+  "sewingTrim": "any stitch details, seam details, top stitch references",
+  "legSpecies": "",
+  "legFinish": "",
+  "legDesc": "any base, leg, mechanism details e.g. swivel mechanism",
+  "otherDetails": "frame construction notes, materials, foundation details, any other specs",
+  "skus": [
+    {
+      "skuCode": "best match from: ${skuList.slice(0,600)} — use product type to pick best code",
+      "desc": "product name/type",
+      "qty": "1",
+      "bodyFabric": "primary fabric name and colorway — if multiple options list first one",
+      "collection": "product line or collection name if mentioned",
+      "seatDepth": "seat depth dimension in inches",
+      "overallDims": "W x D x H overall dimensions in inches",
+      "railSize": "",
+      "seats": "1",
+      "backs": "1",
+      "pillows": []
+    }
+  ]
+}
+Return ONLY the JSON object, no markdown, no explanation.`;
+
+  if(file.type==='application/pdf'||file.name.toLowerCase().endsWith('.pdf')){
+    const r=new FileReader();
+    r.onload=async e=>{
+      const base64=e.target.result.split(',')[1];
+      document.getElementById('aiThinking').style.display='block';
+      document.getElementById('parsedPreview').style.display='none';
+      try{
+        const res=await fetch('https://api.anthropic.com/v1/messages',{
+          method:'POST',
+          headers:{
+            'Content-Type':'application/json',
+            'anthropic-dangerous-direct-browser-access':'true'
+          },
+          body:JSON.stringify({
+            model:'claude-sonnet-4-6',max_tokens:2000,
+            messages:[{role:'user',content:[
+              {type:'document',source:{type:'base64',media_type:'application/pdf',data:base64}},
+              {type:'text',text:extractPrompt}
+            ]}]
+          })
+        });
+        if(!res.ok){
+          const err=await res.json().catch(()=>({}));
+          throw new Error(err.error?.message||`API error ${res.status}`);
+        }
+        const data=await res.json();
+        const raw=data.content?.find(c=>c.type==='text')?.text||'';
+        const parsed=JSON.parse(raw.replace(/```json|```/g,'').trim());
+        applyParsedData(parsed);
+        const fields=[];
+        if(parsed.retailer)fields.push(`<b>Retailer:</b> ${parsed.retailer}`);
+        if(parsed.skus?.[0]?.desc)fields.push(`<b>Product:</b> ${parsed.skus[0].desc}`);
+        if(parsed.skus?.[0]?.skuCode)fields.push(`<b>SKU:</b> ${parsed.skus[0].skuCode}`);
+        if(parsed.skus?.[0]?.overallDims)fields.push(`<b>Dims:</b> ${parsed.skus[0].overallDims}`);
+        if(parsed.skus?.[0]?.bodyFabric)fields.push(`<b>Fabric:</b> ${parsed.skus[0].bodyFabric}`);
+        if(parsed.seatComfort)fields.push(`<b>Seat:</b> ${parsed.seatComfort}`);
+        document.getElementById('parsedPreview').innerHTML='✓ Extracted from PDF: '+fields.join(' &nbsp;·&nbsp; ');
+        document.getElementById('parsedPreview').style.display='block';
+      }catch(err){
+        document.getElementById('parsedPreview').innerHTML=`⚠ Could not read PDF: ${err.message}. Try pasting the text content instead.`;
+        document.getElementById('parsedPreview').style.display='block';
+      }
+      document.getElementById('aiThinking').style.display='none';
+    };
+    r.readAsDataURL(file);
+  } else {
+    // Text / doc file — read as text and run through text parser
+    const r=new FileReader();
+    r.onload=e=>{
+      document.getElementById('pasteInput').value=e.target.result;
+      runAIParser();
+    };
+    r.readAsText(file);
+  }
+}
+
+function applyParsedData(p){
+  const setVal=(id,val)=>{const el=document.getElementById(id);if(el&&val)el.value=val};
+  setVal('retailerInput',p.retailer);
+  setVal('requestedDate',p.requestedDate);
+  setVal('dueDate',p.dueDate);
+  setVal('sampleDue',p.sampleDue);
+  setVal('shipAddress',p.shipAddress);
+  setVal('shipByDate',p.shipByDate);
+  setVal('sewingTrim',p.sewingTrim);
+  setVal('legSpecies',p.legSpecies);
+  setVal('legFinish',p.legFinish);
+  setVal('legDesc',p.legDesc);
+  setVal('otherDetails',p.otherDetails);
+  // Construction selects
+  ['seatComfort','seatAttachment','backComfort','backAttachment'].forEach(fld=>{
+    const sel=document.getElementById(fld);
+    if(sel&&p[fld]){
+      const opts=[...sel.options].map(o=>o.value);
+      if(opts.includes(p[fld]))sel.value=p[fld];
+    }
+  });
+  // SKUs
+  if(p.skus&&p.skus.length){
+    skus=p.skus.map(s=>({
+      id:uid(),
+      skuCode:s.skuCode||'',desc:s.desc||'',qty:s.qty||'',
+      bodyFabric:s.bodyFabric||'',bodyFabricETA:'',
+      collection:s.collection||'',seatDepth:s.seatDepth||'',
+      overallDims:s.overallDims||'',railSize:s.railSize||'',
+      seats:s.seats||'',backs:s.backs||'',
+      pillows:(s.pillows||[]).map(p2=>({id:uid(),style:p2.style||'',qty:p2.qty||'',size:p2.size||'',fabricColorway:p2.fabricColorway||'',fill:p2.fill||''}))
+    }));
+    renderSkus();
+  }
+}
+
+function clearParser(){
+  document.getElementById('pasteInput').value='';
+  document.getElementById('parsedPreview').style.display='none';
+  document.getElementById('parsedPreview').innerHTML='';
+}
+
+// ══════════════════════════════════════
+// COLLECT FORM DATA
+// ══════════════════════════════════════
+function collectData(){
+  return{
+    retailer:v('retailerInput'),requestedDate:v('requestedDate'),dueDate:v('dueDate'),
+    sampleDue:v('sampleDue'),shipAddress:v('shipAddress'),shipByDate:v('shipByDate'),
+    seatComfort:getSelVal('seatComfort','seatComfortCustom'),seatAttachment:v('seatAttachment'),
+    backComfort:getSelVal('backComfort','backComfortCustom'),backAttachment:v('backAttachment'),
+    sewingTrim:v('sewingTrim'),seatDetail:v('seatDetail'),backDetail:v('backDetail'),
+    legSpecies:v('legSpecies'),legFinish:v('legFinish'),legDesc:v('legDesc'),otherDetails:v('otherDetails')
+  };
+}
+
+// ══════════════════════════════════════
+// PREVIEW
+// ══════════════════════════════════════
+function buildPreview(){
+  const d=collectData();
+  const skuRows=skus.map(sku=>{
+    const eta=getETA(sku.bodyFabric)||sku.bodyFabricETA||'—';
+    const pills=sku.pillows.length?sku.pillows.map(p=>[p.style,p.qty?'×'+p.qty:'',p.size,p.fabricColorway,p.fill?'('+p.fill+')':''].filter(Boolean).join(' ')).join('<br>'):'—';
+    return`<tr><td>${sku.skuCode}</td><td>${sku.desc}</td><td>${sku.qty}</td><td>${sku.collection}</td><td>${sku.bodyFabric}</td><td>${eta}</td><td style="font-size:9px">${pills}</td><td>${sku.railSize}</td><td>${sku.seats}</td><td>${sku.backs}</td><td>${sku.seatDepth}</td><td>${sku.overallDims}</td></tr>`;
+  }).join('');
+  const specRows=[['Seat Comfort',d.seatComfort],['Seat Attachment',d.seatAttachment],['Back Comfort',d.backComfort],['Back Attachment',d.backAttachment],['Sewing Trim & Placement',d.sewingTrim],['Seat Detail',d.seatDetail],['Back Detail',d.backDetail],['Base/Leg Species',d.legSpecies],['Base/Leg Finish',d.legFinish],['Base/Leg Desc. & Height',d.legDesc],['Other Details',d.otherDetails]].filter(r=>r[1]).map(([l,val])=>`<tr><td class="pv-lbl">${l}</td><td>${(val||'').replace(/\n/g,'<br>')}</td></tr>`).join('');
+  const dates=`${d.requestedDate?'Requested: '+fmtDate(d.requestedDate)+'<br>':''}${d.dueDate?'Due: '+fmtDate(d.dueDate)+'<br>':''}${d.sampleDue?'<b style="color:#c00">Sample Due: '+fmtDate(d.sampleDue)+'</b>':''}`;
+  const ship=d.shipAddress||d.shipByDate?`<br><b>Ship to:</b> ${(d.shipAddress||'').replace(/\n/g,', ')}${d.shipByDate?' by '+fmtDate(d.shipByDate):''}`:''
+  const img=imgDataUrl?`<div style="text-align:center;margin-top:8px"><img src="${imgDataUrl}" style="max-height:180px;max-width:100%"></div>`:'';
+  document.getElementById('previewSheet').innerHTML=`
+    <div class="pv-top">
+      <div style="font-size:10px;line-height:1.8">${dates}${ship}</div>
+      <div class="pv-logo">${esc(d.retailer)||'RETAILER'}</div>
+    </div>
+    <table class="pv-tbl"><thead><tr><th>SKU</th><th>Description</th><th>Qty</th><th>Collection</th><th>Body Fabric</th><th>Fabric ETA</th><th>Accent Pillows</th><th>Rail</th><th>#Seats</th><th>#Backs</th><th>Seat Depth</th><th>Overall Dims.</th></tr></thead>
+    <tbody>${skuRows}</tbody></table>
+    ${specRows?`<table class="pv-tbl">${specRows}</table>`:''}${img}`;
+}
+
+// ══════════════════════════════════════
+// SAVE PROJECT
+// ══════════════════════════════════════
+async function saveProject(){
+  const d=collectData();
+  if(!d.retailer){alert('Please enter a retailer name first.');return}
+  // Add retailer to list if new
+  const rets=getRetailers();
+  if(!rets.find(r=>r.toLowerCase()===d.retailer.toLowerCase())){rets.unshift(d.retailer);setRetailers(rets)}
+  const proj={
+    id:editingId||uid(),...d,
+    skus:JSON.parse(JSON.stringify(skus)),
+    imgDataUrl:imgDataUrl||null,
+    status:'open',
+    createdAt:editingId?(lsGet('ss_proj_'+editingId)||{}).createdAt||new Date().toISOString():new Date().toISOString(),
+    updatedAt:new Date().toISOString()
+  };
+  await saveProj(proj);
+  editingId=proj.id;
+  await updateBadge();
+  const msg=document.getElementById('saveMsg');
+  msg.textContent='✓ Project saved!';
+  setTimeout(()=>msg.textContent='',3000);
+}
+
+async function updateBadge(){
+  const projects=await getProjects();
+  const open=projects.filter(p=>p.status==='open').length;
+  const archived=projects.filter(p=>p.status==='archived').length;
+  document.getElementById('projBadge').textContent=open;
+  // Show archived count hint if any
+  const badge=document.getElementById('projBadge');
+  badge.title=archived>0?archived+' archived project'+(archived===1?'':'s'):'';
+}
+
+function resetBuilder(){
+  editingId=null;skus=[newSku()];imgDataUrl=null;
+  ['retailerInput','requestedDate','dueDate','sampleDue','shipAddress','shipByDate',
+   'sewingTrim','seatDetail','backDetail','legSpecies','legFinish','legDesc','otherDetails','pasteInput']
+    .forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  ['seatComfort','seatAttachment','backComfort','backAttachment'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  ['seatComfortCustom','backComfortCustom'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none'});
+  const dz=document.getElementById('dropZone');
+  if(dz){dz.innerHTML=`<div style="font-size:2rem">📷</div><div>Click to upload, drag & drop, or paste</div><div style="font-size:11px;color:var(--text3)">JPG, PNG, GIF</div><input type="file" id="imgFileInput" accept="image/*" style="display:none" onchange="handleImg(this.files[0])">`;dz.onclick=()=>document.getElementById('imgFileInput').click()}
+  document.getElementById('parsedPreview').style.display='none';
+  goStep(0);renderSkus();
+}
+
+// ══════════════════════════════════════
+// EXPORTS
+// ══════════════════════════════════════
+function getPrintHTML(d,skuRowsHTML,specRows,dates,ship,imgBlock){
+  return`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${d.retailer||'Retailer'} Prototype Request Form</title>
+  <style>body{font-family:Arial,sans-serif;margin:.5in;color:#111;font-size:10pt}
+  .hdr{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:8px}
+  .logo{font-size:20px;font-weight:700;border:2px solid #000;padding:2px 12px;letter-spacing:1px}
+  table{width:100%;border-collapse:collapse;margin-bottom:8px}
+  th{background:#d0d0d0;font-size:9pt;padding:3px 5px;border:.5px solid #aaa;text-align:center}
+  td{padding:3px 5px;border:.5px solid #aaa;font-size:9pt;vertical-align:top}
+  .lbl{font-weight:600;background:#ececec;width:150px}
+  @media print{@page{margin:.4in}}</style></head><body>
+  <div class="hdr"><div style="font-size:9pt;line-height:1.8">${dates}${ship}</div><div class="logo">${d.retailer||'RETAILER'}</div></div>
+  <table><thead><tr><th>SKU</th><th>Description</th><th>Qty</th><th>Collection</th><th>Body Fabric</th><th>ETA</th><th>Pillows</th><th>Rail</th><th>#Seats</th><th>#Backs</th><th>Seat Depth</th><th>Dims.</th></tr></thead>
+  <tbody>${skuRowsHTML}</tbody></table>
+  ${specRows?`<table>${specRows}</table>`:''}${imgBlock}</body></html>`;
+}
+
+function exportPDF(){
+  const d=collectData();
+  const rows=skus.map(s=>{const eta=getETA(s.bodyFabric)||s.bodyFabricETA||'';const pills=s.pillows.map(p=>[p.style,p.qty?'×'+p.qty:'',p.size,p.fabricColorway,p.fill?'('+p.fill+')':''].filter(Boolean).join(' ')).join('<br>');return`<tr><td>${s.skuCode}</td><td>${s.desc}</td><td>${s.qty}</td><td>${s.collection}</td><td>${s.bodyFabric}</td><td>${eta}</td><td style="font-size:8pt">${pills||'—'}</td><td>${s.railSize}</td><td>${s.seats}</td><td>${s.backs}</td><td>${s.seatDepth}</td><td>${s.overallDims}</td></tr>`}).join('');
+  const specs=[['Seat Comfort',d.seatComfort],['Seat Attachment',d.seatAttachment],['Back Comfort',d.backComfort],['Back Attachment',d.backAttachment],['Sewing Trim',d.sewingTrim],['Seat Detail',d.seatDetail],['Back Detail',d.backDetail],['Leg Species',d.legSpecies],['Leg Finish',d.legFinish],['Leg Desc',d.legDesc],['Other',d.otherDetails]].filter(r=>r[1]).map(([l,v2])=>`<tr><td class="lbl">${l}</td><td>${(v2||'').replace(/\n/g,'<br>')}</td></tr>`).join('');
+  const dates=`${d.requestedDate?'Requested: '+fmtDate(d.requestedDate)+'<br>':''}${d.dueDate?'Due: '+fmtDate(d.dueDate)+'<br>':''}${d.sampleDue?'<b style="color:#c00">Sample Due: '+fmtDate(d.sampleDue)+'</b>':''}`;
+  const ship=d.shipAddress?`<br>Ship to: ${d.shipAddress.replace(/\n/g,', ')}${d.shipByDate?' by '+fmtDate(d.shipByDate):''}`:''
+  const img=imgDataUrl?`<div style="text-align:center;margin-top:12px"><img src="${imgDataUrl}" style="max-height:220px;max-width:100%"></div>`:'';
+  const html=getPrintHTML(d,rows,specs,dates,ship,img);
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([html],{type:'text/html'}));
+  a.download=`${(d.retailer||'Retailer').replace(/\s+/g,'_')}_Prototype_Request.html`;a.click();
+}
+
+function exportExcel(){
+  const d=collectData();
+  const wb=XLSX.utils.book_new();
+  const hdr=[[`${d.retailer||'Retailer'} — Prototype Request Form`],[`Requested: ${fmtDate(d.requestedDate)}`,'',`Due: ${fmtDate(d.dueDate)}`,'',`Sample Due: ${fmtDate(d.sampleDue)}`],[`Ship to: ${(d.shipAddress||'').replace(/\n/g,' ')} ${d.shipByDate?'by '+fmtDate(d.shipByDate):''}`],[],['SKU','Description','Qty','Collection','Body Fabric','Fabric ETA','Pillow Style','Pillow Qty','Pillow Size','Pillow Fabric','Pillow Fill','Rail','#Seats','#Backs','Seat Depth','Overall Dims.']];
+  const rows=[];
+  skus.forEach(s=>{
+    const eta=getETA(s.bodyFabric)||s.bodyFabricETA||'';
+    if(!s.pillows.length)rows.push([s.skuCode,s.desc,s.qty,s.collection,s.bodyFabric,eta,'','','','','',s.railSize,s.seats,s.backs,s.seatDepth,s.overallDims]);
+    else s.pillows.forEach((p,pi)=>rows.push([pi?'':s.skuCode,pi?'':s.desc,pi?'':s.qty,pi?'':s.collection,pi?'':s.bodyFabric,pi?'':eta,p.style,p.qty,p.size,p.fabricColorway,p.fill,pi?'':s.railSize,pi?'':s.seats,pi?'':s.backs,pi?'':s.seatDepth,pi?'':s.overallDims]));
+  });
+  const specs=[[],['SPEC','VALUE']];
+  [['Seat Comfort',d.seatComfort],['Seat Attachment',d.seatAttachment],['Back Comfort',d.backComfort],['Back Attachment',d.backAttachment],['Sewing Trim',d.sewingTrim],['Seat Detail',d.seatDetail],['Back Detail',d.backDetail],['Leg Species',d.legSpecies],['Leg Finish',d.legFinish],['Leg Desc',d.legDesc],['Other',d.otherDetails]].filter(r=>r[1]).forEach(r=>specs.push(r));
+  const ws=XLSX.utils.aoa_to_sheet([...hdr,...rows,...specs]);
+  ws['!cols']=Array(16).fill({wch:16});
+  XLSX.utils.book_append_sheet(wb,ws,'Prototype Request Form');
+  XLSX.writeFile(wb,`${(d.retailer||'Retailer').replace(/\s+/g,'_')}_Prototype_Request.xlsx`);
+}
+
+function exportCSV(){
+  const d=collectData();
+  const rows=[['SKU','Description','Qty','Collection','Body Fabric','Fabric ETA','Pillow Style','Pillow Qty','Pillow Size','Pillow Fabric','Pillow Fill','Rail','Seats','Backs','Seat Depth','Overall Dims','Seat Comfort','Seat Attach','Back Comfort','Back Attach','Retailer','Due Date','Sample Due']];
+  skus.forEach(s=>{
+    const eta=getETA(s.bodyFabric)||s.bodyFabricETA||'';
+    const base=[s.skuCode,s.desc,s.qty,s.collection,s.bodyFabric,eta,'','','','','',s.railSize,s.seats,s.backs,s.seatDepth,s.overallDims,d.seatComfort,d.seatAttachment,d.backComfort,d.backAttachment,d.retailer,fmtDate(d.dueDate),fmtDate(d.sampleDue)];
+    if(!s.pillows.length){rows.push(base)}
+    else s.pillows.forEach((p,pi)=>{const r=[...base];r[6]=p.style;r[7]=p.qty;r[8]=p.size;r[9]=p.fabricColorway;r[10]=p.fill;if(pi>0){r[0]=r[1]=r[2]=r[3]=r[4]=r[5]=''}rows.push(r)});
+  });
+  const csv=rows.map(r=>r.map(c=>`"${(c||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download=`${(d.retailer||'Retailer').replace(/\s+/g,'_')}_Prototype_Request.csv`;a.click();
+}
+
+function copyAsText(){
+  const d=collectData();
+  let txt=`SPEC SHEET — ${d.retailer||'Retailer'}\n`;
+  txt+=`Requested: ${fmtDate(d.requestedDate)} | Due: ${fmtDate(d.dueDate)} | Sample Due: ${fmtDate(d.sampleDue)}\n`;
+  if(d.shipAddress)txt+=`Ship to: ${d.shipAddress.replace(/\n/g,', ')} by ${fmtDate(d.shipByDate)}\n`;
+  txt+='\nPIECES:\n';
+  skus.forEach((s,i)=>{
+    const eta=getETA(s.bodyFabric)||s.bodyFabricETA||'';
+    txt+=`\n${i+1}. ${s.skuCode} ${s.desc} (Qty: ${s.qty})\n`;
+    if(s.collection)txt+=`   Collection: ${s.collection}\n`;
+    txt+=`   Body Fabric: ${s.bodyFabric}${eta?' — ETA: '+eta:''}\n`;
+    if(s.seatDepth||s.overallDims)txt+=`   Dims: Seat Depth ${s.seatDepth} | Overall ${s.overallDims} | Rail ${s.railSize}\n`;
+    if(s.seats||s.backs)txt+=`   Seats: ${s.seats} | Backs: ${s.backs}\n`;
+    if(s.pillows.length){txt+=`   Pillows:\n`;s.pillows.forEach(p=>txt+=`     - ${[p.style,p.qty?'×'+p.qty:'',p.size,p.fabricColorway,p.fill].filter(Boolean).join(' ')}\n`)}
+  });
+  txt+='\nCONSTRUCTION:\n';
+  [['Seat Comfort',d.seatComfort],['Seat Attachment',d.seatAttachment],['Back Comfort',d.backComfort],['Back Attachment',d.backAttachment],['Sewing Trim',d.sewingTrim]].filter(r=>r[1]).forEach(([l,v2])=>txt+=`${l}: ${v2}\n`);
+  if(d.legSpecies||d.legDesc)txt+=`\nBASE/LEGS:\n${d.legSpecies} ${d.legFinish} — ${d.legDesc}\n`;
+  if(d.otherDetails)txt+=`\nOTHER: ${d.otherDetails}\n`;
+  navigator.clipboard.writeText(txt).then(()=>{document.getElementById('saveMsg').textContent='✓ Copied to clipboard!';setTimeout(()=>document.getElementById('saveMsg').textContent='',2000)});
+}
+
+// ══════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════
+async function renderDashboard(){
+  const filterR=(v('filterRetailer')||'').toLowerCase();
+  const filterS=v('filterStatus');
+  const sort=v('filterSort')||'due';
+  let projects=await getProjects();
+  projects=projects.filter(p=>{
+    if(filterR&&!(p.retailer||'').toLowerCase().includes(filterR))return false;
+    if(filterS){
+      if(p.status!==filterS)return false;
+    } else {
+      // Hide archived by default unless explicitly selected
+      if(p.status==='archived')return false;
+    }
+    return true;
+  });
+  projects.sort((a,b)=>{
+    if(sort==='due')return(a.dueDate||'9')>(b.dueDate||'9')?1:-1;
+    if(sort==='created')return(a.createdAt||'')>(b.createdAt||'')?-1:1;
+    if(sort==='retailer')return(a.retailer||'').localeCompare(b.retailer||'');
+    return 0;
+  });
+  const cont=document.getElementById('dashContent');
+  cont.innerHTML='<div style="text-align:center;padding:2rem;color:var(--text2)">Loading projects…</div>';
+  if(!projects.length){
+    cont.innerHTML=`<div class="empty"><div class="empty-icon">📋</div>No projects yet. Create your first prototype request form.</div>`;return;
+  }
+  cont.innerHTML=`<table class="dash-table">
+    <thead><tr><th>Retailer</th><th>Pieces</th><th>Body fabrics & ETAs</th><th>Due date</th><th>Sample due</th><th>Status</th><th></th></tr></thead>
+    <tbody>${projects.map(p=>{
+      const fabrics=(p.skus||[]).map(s=>{
+        const eta=s.bodyFabricETA||getETA(s.bodyFabric)||'';
+        return`<div style="font-size:12px;margin-bottom:2px">${s.bodyFabric||'—'} ${etaPill(eta)}</div>`;
+      }).join('');
+      const pieces=(p.skus||[]).map(s=>s.skuCode||s.desc||'—').join(', ');
+      return`<tr>
+        <td><b>${esc(p.retailer)}</b><div style="font-size:11px;color:var(--text3);margin-top:2px">${fmtDate(p.createdAt?.split('T')[0])}</div></td>
+        <td style="font-size:12px">${esc(pieces)}</td>
+        <td>${fabrics}</td>
+        <td style="font-size:12px;white-space:nowrap">${fmtDate(p.dueDate)||'—'}</td>
+        <td style="font-size:12px;white-space:nowrap">${fmtDate(p.sampleDue)||'—'}</td>
+        <td><span class="status-pill ${p.status==='done'?'s-done':p.status==='archived'?'s-archived':'s-open'}">${p.status}</span></td>
+        <td>
+          <div style="display:flex;gap:4px">
+            <button class="btn ghost sm" onclick="toggleStatus('${p.id}','${p.status}')" title="${p.status==='done'?'Reopen':'Mark done'}">
+              ${p.status==='done'?'↺':'✓'}
+            </button>
+            <button class="btn ghost sm" onclick="editProj('${p.id}')" title="Edit">✎</button>
+            ${p.status==='archived'
+              ?`<button class="btn ghost sm" onclick="restoreProj('${p.id}')" title="Restore">↺ Restore</button>`
+              :`<button class="btn ghost sm" onclick="archiveProj('${p.id}')" title="Archive" style="color:var(--amber)">⊘ Archive</button>`
+            }
+          </div>
+        </td>
+      </tr>`;
+    }).join('')}</tbody></table>`;
+}
+
+async function toggleStatus(id,cur){
+  const projects=await getProjects();
+  const p=projects.find(pr=>pr.id===id);if(!p)return;
+  p.status=cur==='done'?'open':'done';
+  await saveProj(p);await updateBadge();renderDashboard();
+}
+async function deleteProj(id){
+  if(!confirm('Delete this project?'))return;
+  await delProj(id);await updateBadge();renderDashboard();
+}
+async function editProj(id){
+  const projects=await getProjects();
+  const p=projects.find(pr=>pr.id===id)||lsGet('ss_proj_'+id);if(!p)return;
+  editingId=id;skus=p.skus||[newSku()];imgDataUrl=p.imgDataUrl||null;
+  const set=(id2,val)=>{const el=document.getElementById(id2);if(el)el.value=val||''};
+  set('retailerInput',p.retailer);set('requestedDate',p.requestedDate);set('dueDate',p.dueDate);
+  set('sampleDue',p.sampleDue);set('shipAddress',p.shipAddress);set('shipByDate',p.shipByDate);
+  set('sewingTrim',p.sewingTrim);set('seatDetail',p.seatDetail);set('backDetail',p.backDetail);
+  set('legSpecies',p.legSpecies);set('legFinish',p.legFinish);set('legDesc',p.legDesc);set('otherDetails',p.otherDetails);
+  ['seatAttachment','backAttachment'].forEach(f=>set(f,p[f]));
+  ['seatComfort','backComfort'].forEach(f=>{
+    const sel=document.getElementById(f);if(!sel)return;
+    const opts=[...sel.options].map(o=>o.value);
+    if(opts.includes(p[f]))sel.value=p[f];
+    else if(p[f]){sel.value='__custom__';const ci=document.getElementById(f+'Custom');if(ci){ci.value=p[f];ci.style.display='block'}}
+  });
+  if(p.imgDataUrl){imgDataUrl=p.imgDataUrl;const dz=document.getElementById('dropZone');if(dz){dz.innerHTML=`<img src="${imgDataUrl}" alt="Product" style="max-height:200px"><div style="font-size:12px;margin-top:6px;color:var(--text2)">Click to change</div>`;dz.onclick=()=>document.getElementById('imgFileInput').click()}}
+  renderSkus();
+  showScreen('builder',document.querySelector('.nav-btn'));
+  goStep(0);
+}
+
+async function exportAllExcel(){
+  const projects=await getProjects();
+  if(!projects.length){alert('No projects to export.');return}
+  const wb=XLSX.utils.book_new();
+  const rows=[['Retailer','Status','Due Date','Sample Due','SKU','Description','Qty','Collection','Body Fabric','Fabric ETA','Pillow Style','Pillow Qty','Pillow Size','Pillow Fabric','Pillow Fill','Rail','Seats','Backs','Seat Depth','Overall Dims','Seat Comfort','Seat Attach','Back Comfort','Back Attach','Ship Address','Ship By','Created','Updated']];
+  projects.forEach(p=>{
+    (p.skus||[]).forEach(s=>{
+      const eta=s.bodyFabricETA||'';
+      if(!s.pillows||!s.pillows.length){
+        rows.push([p.retailer,p.status,fmtDate(p.dueDate),fmtDate(p.sampleDue),s.skuCode,s.desc,s.qty,s.collection,s.bodyFabric,eta,'','','','','',s.railSize,s.seats,s.backs,s.seatDepth,s.overallDims,p.seatComfort,p.seatAttachment,p.backComfort,p.backAttachment,(p.shipAddress||'').replace(/\n/g,' '),fmtDate(p.shipByDate),fmtDate(p.createdAt?.split('T')[0]),fmtDate(p.updatedAt?.split('T')[0])]);
+      } else {
+        s.pillows.forEach((pill,pi)=>rows.push([pi?'':p.retailer,pi?'':p.status,pi?'':fmtDate(p.dueDate),pi?'':fmtDate(p.sampleDue),pi?'':s.skuCode,pi?'':s.desc,pi?'':s.qty,pi?'':s.collection,pi?'':s.bodyFabric,pi?'':eta,pill.style,pill.qty,pill.size,pill.fabricColorway,pill.fill,pi?'':s.railSize,pi?'':s.seats,pi?'':s.backs,pi?'':s.seatDepth,pi?'':s.overallDims,pi?'':p.seatComfort,pi?'':p.seatAttachment,pi?'':p.backComfort,pi?'':p.backAttachment,pi?'':( p.shipAddress||'').replace(/\n/g,' '),pi?'':fmtDate(p.shipByDate),pi?'':fmtDate(p.createdAt?.split('T')[0]),pi?'':fmtDate(p.updatedAt?.split('T')[0])]));
+      }
+    });
+  });
+  const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=Array(28).fill({wch:15});
+  XLSX.utils.book_append_sheet(wb,ws,'All Projects');
+  XLSX.writeFile(wb,'All_Prototype_Requests.xlsx');
+}
+
+async function exportAllCSV(){
+  const projects=await getProjects();
+  if(!projects.length){alert('No projects to export.');return}
+  const rows=[['Retailer','Status','Due Date','Sample Due','SKU','Description','Qty','Body Fabric','Fabric ETA','Pillow Details','Rail','Seats','Backs','Seat Depth','Overall Dims','Seat Comfort','Seat Attach','Back Comfort','Back Attach']];
+  projects.forEach(p=>{
+    (p.skus||[]).forEach(s=>{
+      const eta=s.bodyFabricETA||'';
+      const pills=(s.pillows||[]).map(pp=>[pp.style,pp.qty,pp.size,pp.fabricColorway,pp.fill].filter(Boolean).join(' ')).join(' | ');
+      rows.push([p.retailer,p.status,fmtDate(p.dueDate),fmtDate(p.sampleDue),s.skuCode,s.desc,s.qty,s.bodyFabric,eta,pills,s.railSize,s.seats,s.backs,s.seatDepth,s.overallDims,p.seatComfort,p.seatAttachment,p.backComfort,p.backAttachment]);
+    });
+  });
+  const csv=rows.map(r=>r.map(c=>`"${(c||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='All_Prototype_Requests.csv';a.click();
+}
+
+// ══════════════════════════════════════
+// RETAILER MANAGER
+// ══════════════════════════════════════
+async function archiveProj(id){
+  if(!confirm('Archive this project? You can restore it anytime from the Archived filter.'))return;
+  const projects=await getProjects();
+  const p=projects.find(pr=>pr.id===id);if(!p)return;
+  p.status='archived';
+  await saveProj(p);await updateBadge();renderDashboard();
+}
+
+async function restoreProj(id){
+  const projects=await getProjects();
+  const p=projects.find(pr=>pr.id===id);if(!p)return;
+  p.status='open';
+  await saveProj(p);await updateBadge();renderDashboard();
+}
+
+async function renderRetailers(){
+  const rets=getRetailers();
+  const projects=await getProjects();
+  const counts={};projects.forEach(p=>counts[p.retailer]=(counts[p.retailer]||0)+1);
+  const list=document.getElementById('retList');
+  if(!rets.length){list.innerHTML='<div class="empty">No retailers yet.</div>';return}
+  list.innerHTML=rets.map((r,i)=>`
+    <div class="ret-row">
+      <div>
+        <div class="ret-name">${esc(r)}</div>
+        <div class="ret-meta">${counts[r]||0} project${counts[r]===1?'':'s'}</div>
+      </div>
+      <button class="btn danger sm" onclick="removeRetailer(${i})">✕ Remove</button>
+    </div>`).join('');
+}
+
+function addRetailer(){
+  const val=(document.getElementById('newRetInput').value||'').trim();
+  if(!val)return;
+  const rets=getRetailers();
+  if(rets.find(r=>r.toLowerCase()===val.toLowerCase())){alert('Already in your list.');return}
+  rets.push(val);setRetailers(rets);
+  document.getElementById('newRetInput').value='';
+  renderRetailers();
+}
+
+function removeRetailer(i){
+  const rets=getRetailers();
+  if(!confirm(`Remove "${rets[i]}"?`))return;
+  rets.splice(i,1);setRetailers(rets);renderRetailers();
+}
+
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
+function init(){
+  skus=[newSku()];renderSkus();
+  document.getElementById('requestedDate').value=new Date().toISOString().split('T')[0];
+  updateBadge();
+}
+init();
+</script>
+</body>
+</html>
